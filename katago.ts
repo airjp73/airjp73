@@ -38,27 +38,26 @@ const gtpCommand = async (command: string, waitFor?: string) => {
   return await inPromise;
 };
 
-await gtpCommand(`loadsgf ${sgfPath}`);
-const boardInfo = await gtpCommand("showboard");
-const match = boardInfo.match(/Next player: (Black|White)/);
-if (!match) {
-  console.log("Board info");
-  console.log(boardInfo);
-  throw new Error("Could not parse board info");
-}
-
-const playerToPlay = match[1].toLocaleLowerCase() === "black" ? "b" : "w";
-const genMoveResult = await gtpCommand(`genmove ${playerToPlay}`, "=");
-console.log("MOVE RESULT: ", genMoveResult);
-
-const value = genMoveResult.split("=").at(-1)?.trim() ?? "";
-console.log("VALUE: ", value);
-
 const serverUrl = process.env.SERVER_URL;
 const secret = process.env.AI_MOVE_SECRET;
 if (!serverUrl || !secret) {
   throw new Error("Missing SERVER_URL or AI_MOVE_SECRET");
 }
+
+const loadSgfPromise = gtpCommand(`loadsgf ${sgfPath}`);
+const playerRes = await fetch(`${serverUrl}/gh_game/next_player`);
+const playerToPlay = await playerRes.text();
+if (playerToPlay !== "b" && playerToPlay !== "w")
+  throw new Error("Invalid player to play: " + playerToPlay);
+
+await loadSgfPromise;
+
+console.log("Generating a move for player: ", playerToPlay);
+const genMoveResult = await gtpCommand(`genmove ${playerToPlay}`, "=");
+console.log("MOVE RESULT: ", genMoveResult);
+
+const value = genMoveResult.split("=").at(-1)?.trim() ?? "";
+console.log("VALUE: ", value);
 
 if (value === "resign") {
   console.log("Finishing the game by resignation", value);
