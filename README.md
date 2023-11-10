@@ -6,6 +6,10 @@
   
 </div>
 
+## GithHub vs KataGo
+
+Participate in an ongoing game between users on this page and the AI KataGo!
+
 <details>
   <summary>Rules</summary>
   <ul>
