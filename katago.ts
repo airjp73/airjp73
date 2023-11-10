@@ -9,7 +9,7 @@ if (!weightsPath) {
 const executablePath =
   process.env.EXE_PATH ?? path.join(process.cwd(), "./KataGo/cpp/katago");
 const configPath = path.join(import.meta.dir, "./config.cfg");
-const sgfPath = path.join(import.meta.dir, "./game.sgf");
+const sgfPath = path.join(import.meta.dir, "./current/game.sgf");
 
 const katago = Bun.spawn(
   [executablePath, "gtp", `-model ${weightsPath}`, `-config ${configPath}`],
