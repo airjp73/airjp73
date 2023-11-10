@@ -1,0 +1,48 @@
+name: Play AI Move
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  push:
+    tags:
+      - play.**
+jobs:
+  get-move:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install deps
+        run: sudo apt-get install libeigen3-dev zlib1g-dev libzip-dev
+
+      - name: Restore Katago
+        id: cache-katago
+        uses: actions/cache/restore@v3
+        with:
+          path: ./KataGo
+          key: ${{ runner.os }}-katago
+
+      - name: Download KataGo
+        if: steps.cache-katago.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/lightvector/KataGo.git
+          cd KataGo/cpp
+          cmake . -DUSE_BACKEND=EIGEN -DUSE_AVX2=1
+          make -j 4
+
+      - name: Cache KataGo
+        if: steps.cache-katago.outputs.cache-hit != 'true'
+        id: cache-primes-save
+        uses: actions/cache/save@v3
+        with:
+          path: ./KataGo
+          key: ${{ steps.cache-katago.outputs.cache-primary-key }}
+
+      - name: Get weights
+        run: wget "https://media.katagotraining.org/uploaded/networks/models/kata1/kata1-b60c320-s9228947968-d3787781814.bin.gz"
+      - uses: oven-sh/setup-bun@v1
+      - name: Get move
+        env:
+          SERVER_URL: ${{ secrets.SERVER_URL }}
+          AI_MOVE_SECRET: ${{ secrets.AI_MOVE_SECRET }}
+        run: bun run ./katago.ts ./kata1-b60c320-s9228947968-d3787781814.bin.gz
+        timeout-minutes: 5

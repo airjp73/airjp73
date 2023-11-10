@@ -1,0 +1,11 @@
+{
+  "name": "airjp73",
+  "module": "katago.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
